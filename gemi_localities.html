@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>AGU Sessions Browser</title>
+
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.1/handlebars.min.js"></script>
+
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+    <link rel="stylesheet" href="/vivo/themes/dco/js/facetview2/vendor/bootstrap/css/bootstrap.min.css">
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/vivo/themes/dco/js/ics.js/ics.js"></script>
+    <script type="text/javascript" src="/vivo/themes/dco/js/ics.js/ics.deps.min.js"></script>
+    <link rel="stylesheet" href="/vivo/themes/dco/js/facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
+
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/es.js"></script>
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/bootstrap2.facetview.theme.js"></script>
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/jquery.facetview2.js"></script>
+    <link rel="stylesheet" href="/vivo/themes/dco/js/facetview2/css/facetview.css">
+    <link rel="stylesheet" href="/vivo/themes/dco/css/browsers.css">
+
+    <script id="mineral-template" type="text/x-handlebars-template">
+        <tr>
+            <td>
+                <div class="session-info span12">
+                    <div><strong>Name: </strong><span class="localityName">{{locality_name}}</span></div>
+                    <div><strong>Long name: </strong><span class="localityLongName">{{locality_longname}}</span></div>
+                    <div><strong>Mindat ID: </strong><span class="localityLongName">{{mindat_id}}</span></div>
+                    <div><strong>Minerals: </strong><span class="mineral">{{minerals}}</span></div>
+                </div>
+                <div>
+                    <a href="{{IDUrl mindat_id}}" target="_blank"><img class="badge" src="{{IDBadge mindat_id}}"/></a>
+                </div>
+            </td>
+        </tr>
+    </script>
+
+    <script type="text/javascript">
+        
+        Handlebars.registerHelper('expand', function(items, options) {
+            
+            var out = "";
+            var j = items.length - 1;
+            for(var i = 0; i < items.length; i++) {
+                out += options.fn(items[i]);
+                if(i < j) {
+                    out += "";
+                }
+            }
+            return out;
+        });
+        Handlebars.registerHelper('list', function(items, options) {
+            var out = "<ul>";
+            for(var i=0, l=items.length; i<l; i++) {
+                out = out + "<li>" + options.fn(items[i]) + "</li>";
+            }
+            return out + "</ul>";
+        });
+        
+        var source = $("#mineral-template").html();
+        var template = Handlebars.compile(source);
+
+        var build_badge_url = function(label, value, color) {
+            label = encodeURIComponent(label).replace(/-/g, "--");
+            value = encodeURIComponent(value).replace(/-/g, "--");
+            return "//img.shields.io/badge/"+label+"-"+value+"-"+color+".svg";
+        };
+
+        Handlebars.registerHelper('IDBadge', function(ID) {
+            return build_badge_url("ID", ID, "D14719");
+        });
+
+        Handlebars.registerHelper('IDUrl', function(ID) {
+            return "https://www.mindat.org/loc-"+ID+".html";
+        });
+
+    
+    </script>
+
+    <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            $('.facet-view-simple').facetview({
+                search_url: 'https://dco.tw.rpi.edu/es/dco/gemi_localities/_search',
+                page_size: 40,
+                sort: [{"_id" : {"order" : "asc"}}],
+                sharesave_link: true,
+                search_button: true,
+                default_freetext_fuzzify: "*",
+                default_facet_operator: "AND",
+                default_facet_order: "count",
+                default_facet_size: 15,
+                // facets: [
+                //   {'field': 'Chemistry_Elements', 'size': 20, 'display': 'Elements'},
+                //   {'field': 'Paragenetic_mode', 'size': 20, order:'term', 'display': 'Paragenetic Mode'},
+                //   {'field': 'color', 'size': 20, 'display': 'Color'},
+                //   {'field': 'hard', 'size': 20, order:'term', 'display': 'Hardness'},
+                // ],
+                search_sortby: [
+                ],
+                render_result_record: function(options, record)
+                {
+                    // console.log(record);
+                    return template(record).trim();
+                },
+                selected_filters_in_facet: true,
+                show_filter_field : true,
+                show_filter_logic: true,
+                post_init_callback: function(options, context) {
+                  // add schedule export controls to the UI
+                $(".facetview_search_options_container").after('<div style="margin-top: 1%;margin-bottom:1%; padding:1%;border:1px solid #ddd;"><p style="font-size: 110%;">Export</p><div><input type="button" id="generate-schedule" class="btn" style="margin-bottom:10px;" value="export results"></div>')
+
+                },
+                post_render_callback: function(options, context) {
+
+                    
+                }
+            });
+
+        });
+        function findWithAttr(array, attr, value) {
+            for(var i = 0; i < array.length; i += 1) {
+                if(array[i][attr] === value) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+    </script>
+
+
+    <style type="text/css">
+        .facet-view-simple{
+            width:100%;
+            height:100%;
+            margin:20px auto 0 auto;
+        }
+
+        .facetview_freetext.span4 {
+           width: 290px;
+           height: 12px;
+        }
+
+        legend {
+            display: none;
+        }
+
+        #wrapper-content {
+          padding-top: 0px;
+        }
+
+        input {
+            -webkit-box-shadow: none;
+            box-shadow: none;
+        }
+
+        .thumbnail {
+            display: inline-block;
+            width: 100px;
+            box-shadow: none;
+            border: none;
+        }
+
+        .session-info {
+            display: inline-block;
+            vertical-align: top;
+            clear: left;
+            margin-left: 0 !important;
+        }
+
+        .paperPanel {
+            margin: 1%;
+            display: none;
+        }
+
+        .vert-margins {
+            margin-top: 1%;
+            margin-bottom: 1%;
+        }
+
+    </style>
+
+</head>
+<body>
+<div class="facet-view-simple"></div>
+</body>
+</html>

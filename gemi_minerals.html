@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>AGU Sessions Browser</title>
+
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.1/handlebars.min.js"></script>
+
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+    <link rel="stylesheet" href="/vivo/themes/dco/js/facetview2/vendor/bootstrap/css/bootstrap.min.css">
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/vivo/themes/dco/js/facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
+
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/es.js"></script>
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/bootstrap2.facetview.theme.js"></script>
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/jquery.facetview2.js"></script>
+    <link rel="stylesheet" href="/vivo/themes/dco/js/facetview2/css/facetview.css">
+
+    <link rel="stylesheet" href="/vivo/themes/dco/css/browsers.css">
+
+
+<!-- FOR LOCAL TESTING      -->
+<!--     <script type="text/javascript" src="facetview2/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="facetview2/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+    <link rel="stylesheet" href="facetview2/vendor/bootstrap/css/bootstrap.min.css">
+    <script type="text/javascript" src="facetview2/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
+    <script type="text/javascript" src="facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
+    <script type="text/javascript" src="facetview2/bootstrap2.facetview.theme.js"></script>
+    <script type="text/javascript" src="facetview2/es.js"></script>
+    <script type="text/javascript" src="facetview2/jquery.facetview2.js"></script>
+    <link rel="stylesheet" href="facetview2/css/facetview.css">
+ -->
+    <script id="mineral-template" type="text/x-handlebars-template">
+        <tr>
+            <td>
+                <div class="session-info span12">
+                    <input type="checkbox" class="select-for-export" entityType="session" targetId={{Name_plain}}> <sub> select for export </sub></input>
+                    <div><strong>Mineral Name: </strong><span class="mineralName">{{Name_plain}}</span></div>
+                    <div><strong>Chemistry: </strong><span class="mineralChem">{{Chemistry}}</span></div>
+                    <div><strong>Color: </strong><span class="color">{{color}}</span></div>
+                    <div><strong>Hardness: </strong><span class="hardness">{{hard}}</span></div>
+                    <div><strong>Paragenetic Mode: </strong><span class="mineralParagenMode">{{Paragenetic_mode}}</span></div>
+                    <div><strong>Max Age: </strong><span class="Max Age (Ma)">{{maxage}}</span></div>
+                    <div><strong>Ig: </strong><span class="ig">{{IG}}</span></div>
+                    <div><strong>ICSD Code: </strong><span class="icsdcode">{{ICSD_code}}</span></div>
+                    <div><strong>Localities: </strong><span class="locality">{{Locality}}</span></div>
+                </div>
+                <div>
+                    <a href="{{DbIDUrl Name_plain}}" target="_blank"><img class="badge" src="{{DbIDBadge Name_plain}}"/></a>
+                </div>
+            </td>
+        </tr>
+    </script>
+
+    <script type="text/javascript">
+        
+        Handlebars.registerHelper('expand', function(items, options) {
+            
+            var out = "";
+            var j = items.length - 1;
+            for(var i = 0; i < items.length; i++) {
+                out += options.fn(items[i]);
+                if(i < j) {
+                    out += "";
+                }
+            }
+            return out;
+        });
+        Handlebars.registerHelper('list', function(items, options) {
+            var out = "<ul>";
+            for(var i=0, l=items.length; i<l; i++) {
+                out = out + "<li>" + options.fn(items[i]) + "</li>";
+            }
+            return out + "</ul>";
+        });
+        
+        var source = $("#mineral-template").html();
+        var template = Handlebars.compile(source);
+
+        var build_badge_url = function(label, value, color) {
+            label = encodeURIComponent(label).replace(/-/g, "--");
+            value = encodeURIComponent(value).replace(/-/g, "--");
+            return "//img.shields.io/badge/"+label+"-"+value+"-"+color+".svg";
+        };
+
+        Handlebars.registerHelper('DbIDBadge', function(ID) {
+            return build_badge_url("ID", ID, "D14719");
+        });
+
+        Handlebars.registerHelper('DbIDUrl', function(ID) {
+            return "http://rruff.info/mineral_list/locality.php?mineral_name="+ID;
+        });
+
+    
+    </script>
+
+    <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            $('.facet-view-simple').facetview({
+                search_url: 'https://dco.tw.rpi.edu/es/dco/gemi_minerals/_search',
+                page_size: 40,
+                sort: [{"Db_ID" : {"order" : "asc"}}],
+                sharesave_link: true,
+                search_button: true,
+                default_freetext_fuzzify: "*",
+                default_facet_operator: "AND",
+                default_facet_order: "count",
+                default_facet_size: 15,
+                facets: [
+                  {'field': 'Chemistry_Elements', 'size': 20, 'display': 'Elements'},
+                  {'field': 'Paragenetic_mode', 'size': 20, order:'term', 'display': 'Paragenetic Mode'},
+                  {'field': 'color', 'size': 20, 'display': 'Color'},
+                  {'field': 'hard', 'size': 20, order:'term', 'display': 'Hardness'},
+                ],
+                search_sortby: [
+                ],
+                render_result_record: function(options, record)
+                {
+                    // console.log(record);
+                    return template(record).trim();
+                },
+                selected_filters_in_facet: true,
+                show_filter_field : true,
+                show_filter_logic: true,
+                post_init_callback: function(options, context) {
+                  // add schedule export controls to the UI
+                $(".facetview_search_options_container").after('<div style="margin-top: 1%;margin-bottom:1%; padding:1%;border:1px solid #ddd;"><p style="font-size: 110%;">Export</p><div><input type="button" id="export-records" class="btn" style="margin-bottom:10px;" value="export records"></div>')
+
+                $('#export-records').on('click', function(e) {
+
+                        let csvContent = "data:text/csv;charset=utf-8,";
+
+                        var individual_selection = false;    
+                                                
+
+                        csvContent += ['mineral_name','chemistry','color','hardness','paragenetic_mode','max_age','complexity_IG','ICSD_code','locality_list'] + "\r\n";
+
+                        $('.select-for-export:checked').each(function () {
+
+                            individual_selection = true;
+                            
+                            var mineralName = $(this).attr("targetId");
+
+                            var record = options.data.records[findWithAttr(options.data.records,'Name_plain',mineralName)];
+
+                            var mineralChem = record["Chemistry"];
+                            var mineralColor = record["color"];
+                            var mineralHardness = record["hard"];
+                            var mineralParagenMode = record["Paragenetic_mode"];
+                            var mineralMaxAge = record["maxage"];
+                            var mineralIG = record["IG"];
+                            var mineralICS = record["ICSD_code"];
+                            var mineralLocalities = record["Locality"];
+
+                            var rowArray = [mineralName, mineralChem, mineralColor, mineralHardness, mineralParagenMode, mineralMaxAge, mineralIG, mineralICS, "["+mineralLocalities+"]"];
+
+                            // console.log(rowArray);
+
+
+                            let row = rowArray.join(",");
+                            csvContent += row + "\r\n";
+                        });
+
+                        if (!individual_selection) {
+
+                            // console.log(options.data.records);
+
+                            $(options.data.records).each(function (id,record) {
+
+                                var mineralName = record["Name_plain"];
+                                var mineralChem = record["Chemistry"];
+                                var mineralColor = record["color"];
+                                var mineralHardness = record["hard"];
+                                var mineralParagenMode = record["Paragenetic_mode"];
+                                var mineralMaxAge = record["maxage"];
+                                var mineralIG = record["IG"];
+                                var mineralICS = record["ICSD_code"];
+                                var mineralLocalities = record["Locality"];
+
+                                var rowArray = [mineralName, mineralChem, mineralColor, mineralHardness, mineralParagenMode, mineralMaxAge, mineralIG, mineralICS, "["+mineralLocalities+"]"];
+
+                                // console.log(rowArray);
+
+                                let row = rowArray.join(",");
+                                csvContent += row + "\r\n";
+
+                            });
+
+                        }
+
+                        console.log(csvContent);
+
+                        var encodedUri = encodeURI(csvContent);
+                        var link = document.createElement("a");
+                        link.setAttribute("href", encodedUri);
+                        link.setAttribute("download", "gemi_minerals_export.csv");
+                        document.body.appendChild(link); // Required for FF
+
+                        link.click();
+
+                    });
+
+                },
+                post_render_callback: function(options, context) {
+
+                    
+                }
+            });
+
+        });
+        function findWithAttr(array, attr, value) {
+            for(var i = 0; i < array.length; i += 1) {
+                if(array[i][attr] === value) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+    </script>
+
+
+    <style type="text/css">
+        .facet-view-simple{
+            width:100%;
+            height:100%;
+            margin:20px auto 0 auto;
+        }
+
+        .facetview_freetext.span4 {
+           width: 290px;
+           height: 12px;
+        }
+
+        legend {
+            display: none;
+        }
+
+        #wrapper-content {
+          padding-top: 0px;
+        }
+
+        input {
+            -webkit-box-shadow: none;
+            box-shadow: none;
+        }
+
+        .thumbnail {
+            display: inline-block;
+            width: 100px;
+            box-shadow: none;
+            border: none;
+        }
+
+        .session-info {
+            display: inline-block;
+            vertical-align: top;
+            clear: left;
+            margin-left: 0 !important;
+        }
+
+        .paperPanel {
+            margin: 1%;
+            display: none;
+        }
+
+        .vert-margins {
+            margin-top: 1%;
+            margin-bottom: 1%;
+        }
+
+    </style>
+
+</head>
+<body>
+<div class="facet-view-simple"></div>
+</body>
+</html>
