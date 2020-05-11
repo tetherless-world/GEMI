@@ -2,7 +2,7 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>AGU Sessions Browser</title>
+    <title>GEMI Minerals Browser</title>
 
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.1/handlebars.min.js"></script>
 
@@ -33,11 +33,12 @@
     <script type="text/javascript" src="facetview2/jquery.facetview2.js"></script>
     <link rel="stylesheet" href="facetview2/css/facetview.css">
  -->
+ 
     <script id="mineral-template" type="text/x-handlebars-template">
         <tr>
             <td>
-                <div class="session-info span12">
-                    <input type="checkbox" class="select-for-export" entityType="session" targetId={{Name_plain}}> <sub> select for export </sub></input>
+                <div class="mineral-info span12">
+                    <input type="checkbox" class="select-for-export" entityType="mineral" targetId={{Name_plain}}> <sub> select for export </sub></input>
                     <div><strong>Mineral Name: </strong><span class="mineralName">{{Name_plain}}</span></div>
                     <div><strong>Chemistry: </strong><span class="mineralChem">{{Chemistry}}</span></div>
                     <div><strong>Color: </strong><span class="color">{{color}}</span></div>
@@ -155,7 +156,7 @@
                             var mineralICS = record["ICSD_code"];
                             var mineralLocalities = record["Locality"];
 
-                            var rowArray = [mineralName, mineralChem, mineralColor, mineralHardness, mineralParagenMode, mineralMaxAge, mineralIG, mineralICS, "["+mineralLocalities+"]"];
+                            var rowArray = [mineralName, '"'+mineralChem+'"', '"'+mineralColor+'"', '"'+mineralHardness+'"', '"'+mineralParagenMode+'"', mineralMaxAge, mineralIG, mineralICS, '"['+mineralLocalities+']"'];
 
                             // console.log(rowArray);
 
@@ -180,7 +181,7 @@
                                 var mineralICS = record["ICSD_code"];
                                 var mineralLocalities = record["Locality"];
 
-                                var rowArray = [mineralName, mineralChem, mineralColor, mineralHardness, mineralParagenMode, mineralMaxAge, mineralIG, mineralICS, "["+mineralLocalities+"]"];
+                                var rowArray = [mineralName, '"'+mineralChem+'"', '"'+mineralColor+'"', '"'+mineralHardness+'"', '"'+mineralParagenMode+'"', mineralMaxAge, mineralIG, mineralICS, '"['+mineralLocalities+']"'];
 
                                 // console.log(rowArray);
 

@@ -2,15 +2,14 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>AGU Sessions Browser</title>
+    <title>GEMI Localities Browser</title>
 
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.1/handlebars.min.js"></script>
 
     <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
     <link rel="stylesheet" href="/vivo/themes/dco/js/facetview2/vendor/bootstrap/css/bootstrap.min.css">
     <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/bootstrap/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="/vivo/themes/dco/js/ics.js/ics.js"></script>
-    <script type="text/javascript" src="/vivo/themes/dco/js/ics.js/ics.deps.min.js"></script>
     <link rel="stylesheet" href="/vivo/themes/dco/js/facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
     <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
 
@@ -18,12 +17,28 @@
     <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/bootstrap2.facetview.theme.js"></script>
     <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/jquery.facetview2.js"></script>
     <link rel="stylesheet" href="/vivo/themes/dco/js/facetview2/css/facetview.css">
+
     <link rel="stylesheet" href="/vivo/themes/dco/css/browsers.css">
+
+
+<!-- FOR LOCAL TESTING      -->
+<!--     <script type="text/javascript" src="facetview2/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="facetview2/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+    <link rel="stylesheet" href="facetview2/vendor/bootstrap/css/bootstrap.min.css">
+    <script type="text/javascript" src="facetview2/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
+    <script type="text/javascript" src="facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
+    <script type="text/javascript" src="facetview2/bootstrap2.facetview.theme.js"></script>
+    <script type="text/javascript" src="facetview2/es.js"></script>
+    <script type="text/javascript" src="facetview2/jquery.facetview2.js"></script>
+    <link rel="stylesheet" href="facetview2/css/facetview.css">
+ -->
 
     <script id="mineral-template" type="text/x-handlebars-template">
         <tr>
             <td>
-                <div class="session-info span12">
+                <div class="locality-info span12">
+                    <input type="checkbox" class="select-for-export" entityType="locality" targetId={{mindat_id}}> <sub> select for export </sub></input>
                     <div><strong>Name: </strong><span class="localityName">{{locality_name}}</span></div>
                     <div><strong>Long name: </strong><span class="localityLongName">{{locality_longname}}</span></div>
                     <div><strong>Mindat ID: </strong><span class="localityLongName">{{mindat_id}}</span></div>
@@ -108,7 +123,70 @@
                 show_filter_logic: true,
                 post_init_callback: function(options, context) {
                   // add schedule export controls to the UI
-                $(".facetview_search_options_container").after('<div style="margin-top: 1%;margin-bottom:1%; padding:1%;border:1px solid #ddd;"><p style="font-size: 110%;">Export</p><div><input type="button" id="generate-schedule" class="btn" style="margin-bottom:10px;" value="export results"></div>')
+                $(".facetview_search_options_container").after('<div style="margin-top: 1%;margin-bottom:1%; padding:1%;border:1px solid #ddd;"><p style="font-size: 110%;">Export</p><div><input type="button" id="export-records" class="btn" style="margin-bottom:10px;" value="export results"></div>')
+
+                $('#export-records').on('click', function(e) {
+
+                        let csvContent = "data:text/csv;charset=utf-8,";
+
+                        var individual_selection = false;    
+                                                
+
+                        csvContent += ['locality_name','locality_longname','mindat_id','mineral_list'] + "\r\n";
+
+                        $('.select-for-export:checked').each(function () {
+
+                            individual_selection = true;
+                            
+                            var localityMindatID = $(this).attr("targetId");
+
+                            var record = options.data.records[findWithAttr(options.data.records,'mindat_id',parseInt(localityMindatID))];
+
+                            var localityName = record["locality_name"];
+                            var localityLongName = record["locality_longname"];
+                            var localityMinerals = record["minerals"];
+
+                            var rowArray = [ localityName, '"'+localityLongName+'"', localityMindatID, '"['+localityMinerals+']"'];
+
+                            // console.log(rowArray);
+
+
+                            let row = rowArray.join(",");
+                            csvContent += row + "\r\n";
+                        });
+
+                        if (!individual_selection) {
+
+                            // console.log(options.data.records);
+
+                            $(options.data.records).each(function (id,record) {
+
+                                var localityName = record["locality_name"];
+                                var localityLongName = record["locality_longname"];
+                                var localityMindatID = record["mindat_id"];
+                                var localityMinerals = record["minerals"];
+
+                                var rowArray = [ localityName, '"'+localityLongName+'"', localityMindatID, '"['+localityMinerals+']"'];
+
+                                    // console.log(rowArray);
+
+                                    let row = rowArray.join(",");
+                                    csvContent += row + "\r\n";
+
+                                });
+
+                            }
+
+                            console.log(csvContent);
+
+                            var encodedUri = encodeURI(csvContent);
+                            var link = document.createElement("a");
+                            link.setAttribute("href", encodedUri);
+                            link.setAttribute("download", "gemi_localities_export.csv");
+                            document.body.appendChild(link); // Required for FF
+
+                            link.click();
+                    });
 
                 },
                 post_render_callback: function(options, context) {
